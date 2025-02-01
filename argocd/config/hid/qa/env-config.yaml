@@ -1,0 +1,15 @@
+# Replace all the {{}} variable to customize the template
+# Repo, branch, Instance ID and K8S Destination may be reuqired to change for the cloud and on-prem.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+  namespace: hid-qa
+data:
+  REPO_URL: https://github.com/sgosukonda82/argocd.git
+  TARGET_REVISION: HEAD
+  NAMESPACE_FOR_DEPLOYMENT: hid-qa
+  D_ENV: qa
+  D_INSTANCE_ID: local
+  K8S_DESTINATION_SERVER: https://kubernetes.default.svc
+  CLIENT_NAME: hid

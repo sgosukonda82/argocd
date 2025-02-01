@@ -1,0 +1,46 @@
+# Replace all the {{}} variable to customize the template
+# Image name, Deployment Instance or host path may be reuqired to change for the cloud and on-prem based on the git hub structure
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -hid-{{envname}}
+resources:
+  - ../../../../../base/ip-addr
+
+patches:
+  - target:
+      kind: IPAddressPool
+    patch: |-
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: hidsafe-ipv4-pool
+        namespace: metallb-system
+      spec:
+        addresses:
+        - "{{IP Range}}"
+
+  - target:
+      kind: BGPPeer
+    patch: |-
+      apiVersion: metallb.io/v1beta1
+      kind: BGPPeer
+      metadata:
+        name: bgp-peer-for-hidsafe-ipv4-pool
+        namespace: metallb-system
+      spec:
+        myASN: {{ASN VALUE}}
+        peerASN: {{ASN VALUE}}
+        peerAddress: {{IP Address}}
+        peerPort:
+
+  - target:
+      kind: L2Advertisement
+    patch: |-
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: hidsafe-ipv4-pool-advert
+        namespace: metallb-system
+      spec:
+        ipAddressPools:
+        - hidsafe-ipv4-pool-hid-{{envname}}

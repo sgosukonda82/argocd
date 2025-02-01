@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/secrets/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/saferabbitmq/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafeadapter/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafeadapter1/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafeadapter2/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafeagent/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafekiosk/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafenotification/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafepolicy/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafescheduler/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafeweb/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/hidsafewebservice/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/ip-addr/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/presyncstatus/
+  - overlays/${CLIENT_NAME}/${D_ENV}/latest/dbutil/

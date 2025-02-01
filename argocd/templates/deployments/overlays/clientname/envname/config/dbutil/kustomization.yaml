@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -hid-onprem
+resources:
+  - ../../../../../base/dbutil
+
+images:
+    - name: dbutil-image
+      newName: localhost:32000/safe/hid.iams.unob.adn8.0.safetools
+      newTag: latest
+
+patches:
+  - target:
+      kind: Job
+    patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: dbutil
+        labels:
+          namespace-name: {{clientname}}-{{envname}}
+          deployment-env: {{envname}}
+          deployment-instance: 'local'
+      spec:
+        template:
+          metadata:
+            labels:
+              app: hidsafetools
+              deployment-env: {{envname}}
+              deployment-instance: 'local'
+              namespace-name: {{clientname}}-{{envname}}
+          spec:
+            containers:
+            - name: dbutil-container
+              env:
+              - name : ConfigXMLPath
+                value: /app/Src/Database/Tools/confXMLdir/QSConfiguration.xml
+              - name : SAFELOGPATH
+                value: /app/logs
+              - name : CLIENT
+                value: {{clientname}}
+              - name : DENV
+                value: {{envname}}
+              args: [{{ARGS_FOR_CONTAINER}}]
+            volumes:
+            - name: config-volume
+              hostPath:
+                path: /usr/local/share/source/repos/safe_vnext/Src/Container/config
+            - name: log-volume
+              hostPath:
+                path: /usr/local/share/runlogs

@@ -1,0 +1,80 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../deployments/overlays/hid/qa/config/namespace/
+  - ../config/hid/qa/
+  - overlays/hid/qa/secrets/
+  - overlays/hid/qa/saferabbitmq/
+  - overlays/hid/qa/hidsafeweb/
+
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: env-config
+      fieldPath: data.NAMESPACE_FOR_DEPLOYMENT
+    targets:
+      - select:
+          kind: Application
+        fieldPaths:
+          - spec.destination.namespace
+          - metadata.labels.namespace-name
+      - select:
+          kind: Namespace
+        fieldPaths:
+          - metadata.name
+          - metadata.labels.namespace-name
+  - source:
+      kind: ConfigMap
+      name: env-config
+      fieldPath: data.K8S_DESTINATION_SERVER
+    targets:
+      - select:
+          kind: Application
+        fieldPaths:
+          - spec.destination.server
+  - source:
+      kind: ConfigMap
+      name: env-config
+      fieldPath: data.REPO_URL
+    targets:
+      - select:
+          kind: Application
+        fieldPaths:
+          - spec.source.repoURL
+  - source:
+      kind: ConfigMap
+      name: env-config
+      fieldPath: data.TARGET_REVISION
+    targets:
+      - select:
+          kind: Application
+        fieldPaths:
+          - spec.source.targetRevision
+  - source:
+      kind: ConfigMap
+      name: env-config
+      fieldPath: data.D_ENV
+    targets:
+      - select:
+          kind: Namespace
+        fieldPaths:
+          - metadata.labels.deployment-env
+      - select:
+          kind: Application
+        fieldPaths:
+          - metadata.labels.deployment-env
+  - source:
+      kind: ConfigMap
+      name: env-config
+      fieldPath: data.D_INSTANCE_ID
+    targets:
+      - select:
+          kind: Namespace
+        fieldPaths:
+          - metadata.labels.deployment-instance
+      - select:
+          kind: Application
+        fieldPaths:
+          - metadata.labels.deployment-instance

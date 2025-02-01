@@ -1,0 +1,66 @@
+# Replace all the {{}} except {{TAG}} variable to customize the template
+# {{TAG}} will be replaced by the release scripts
+# Image name, Deployment Instance or host path may be reuqired to change for the cloud and on-prem based on the git hub structure
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -hid-qa
+resources:
+  - ../../../../../base/hidsafeweb
+
+images:
+    - name: hidsafeweb-image
+      newName: nginxdemos/hello
+
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: hidsafeweb
+        namespace: hid-qa
+        labels:
+          namespace-name: 'hid-qa'
+          deployment-env: 'qa'
+          deployment-instance: 'local'
+          enable-hidsafeweb: 'y'
+      spec:
+        selector:
+          matchLabels:
+            namespace-name: 'hid-qa'
+            deployment-env: 'qa'
+            deployment-instance: 'local'
+            enable-hidsafeweb: "y"
+        template:
+          metadata:
+            labels:
+              namespace-name: 'hid-qa'
+              deployment-env: 'qa'
+              deployment-instance: 'local'
+              enable-hidsafeweb: 'y'
+
+          
+  - target:
+      kind: Service
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: hidsafeweb
+        namespace: hid-qa
+        labels:
+          namespace-name: 'hid-qa'
+          deployment-env: 'qa'
+          deployment-instance: 'local'
+          enable-ext-ip-for-hidsafeweb: 'y'
+          use-pool: hidsafekiosk-ext-ip-pool-in-dev
+      spec:
+        sessionAffinityConfig:
+          clientIP:
+            timeoutSeconds: 60
+        selector:
+            namespace-name: 'hid-qa'
+            deployment-env: 'qa'
+            deployment-instance: 'local'
+        loadBalancerIP: ''

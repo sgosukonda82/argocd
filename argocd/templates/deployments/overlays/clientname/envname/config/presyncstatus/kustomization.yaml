@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../../../base/presyncstatus
+
+patches:
+  - target:
+      kind: Job
+    patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: presync-status
+        namespace: {{clientname}}-{{envname}}
+        labels:
+          namespace-name: {{clientname}}-{{envname}}
+          deployment-env: {{envname}}
+          deployment-instance: 'local'
+      spec:
+        template:
+          spec:
+            containers:
+            - name: presync-status-container
+              env:
+              - name: CLIENT
+                value: "{{clientname}}"
+              - name: ENV
+                value: "{{envname}}"
+            volumes:
+            - name: status-volume
+              hostPath:
+                path: '/usr/local/share/DBUtil'

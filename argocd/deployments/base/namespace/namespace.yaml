@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: 'abc'
+  labels:
+    namespace-name: ''
+    deployment-env: ''
+    deployment-instance: ''

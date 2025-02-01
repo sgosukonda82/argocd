@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saferabbitmq
+  namespace: ''
+  labels:
+    namespace-name: 'safe1'
+    deployment-env: 'dev1'
+    deployment-instance: 'local1'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saferabbitmq
+      deployment-env: 'dev1'
+      deployment-instance: 'local1'
+      namespace-name: ''
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: saferabbitmq
+        deployment-env: 'dev1'
+        deployment-instance: 'local1'
+        namespace-name: ''
+    spec:
+      hostname : saferabbitmq
+      containers:
+      - name: saferabbitmq
+        image: rabbitmq-image
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              name: safeapp-credentials
+              key: username
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: safeapp-credentials
+              key: password
+        - name: RABBITMQ_DEFAULT_VHOST
+          value: safehost
+        - name: RABBITMQ_ERLANG_COOKIE
+          value: SoMeSt6A@2EKPrq
+        resources:
+          requests:
+            cpu: 200m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 8192Mi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: saferabbitmq
+  namespace: ''
+  labels:
+    namespace-name: 'safe1'
+    deployment-env: 'dev1'
+    deployment-instance: 'local1'
+    enable-ext-ip-for-saferabbitmq: ''
+spec:
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 0
+  selector:
+    app: saferabbitmq
+    namespace-name: 'safe1'
+    deployment-env: 'dev1'
+    deployment-instance: 'local1'
+  ports:
+    - protocol: TCP
+      port: 5672
+      name: amqp-port
+      targetPort: 5672
+    - protocol: TCP
+      port: 80
+      nodePort: 31672
+      name: httpapi-port
+      targetPort: 15672
+  type: LoadBalancer
+
+#microk8s kubectl apply -f ./deployment_rabbitmq.yaml
+#microk8s kubectl get svc
+# curl http://10.152.183.132:15672

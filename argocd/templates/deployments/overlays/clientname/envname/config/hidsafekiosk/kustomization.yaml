@@ -1,0 +1,111 @@
+# Replace all the {{}} except {{TAG}} variable to customize the template
+# {{TAG}} will be replaced by the release scripts
+# Image name, Deployment Instance or host path may be reuqired to change for the cloud and on-prem based on the git hub structure
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -hid-{{envname}}
+resources:
+  - ../../../../../base/hidsafekiosk
+
+images:
+    - name: hidsafekiosk-image
+      newName: localhost:32000/safe/hid.iams.unob.adn8.0.safeweb
+      newTag: {{TAG}}
+
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: hidsafekiosk
+        namespace: {{clientname}}-{{envname}}
+        labels:
+          namespace-name: '{{clientname}}-{{envname}}'
+          deployment-env: '{{envname}}'
+          deployment-instance: 'local'
+          enable-hidsafekiosk: 'y'
+      spec:
+        selector:
+          matchLabels:
+            namespace-name: '{{clientname}}-{{envname}}'
+            deployment-env: '{{envname}}'
+            deployment-instance: 'local'
+            enable-hidsafekiosk: 'y'
+        template:
+          metadata:
+            labels:
+              namespace-name: '{{clientname}}-{{envname}}'
+              deployment-env: '{{envname}}'
+              deployment-instance: 'local'
+              enable-hidsafekiosk: 'y'
+          spec:
+            containers:
+            - name: hidsafekiosk
+              env:
+              - name: ASPNETCORE_Kestrel__Certificates__Default__Path
+                value: /app/certs/AGServerCert.crt 
+              - name: ASPNETCORE_Kestrel__Certificates__Default__KeyPath
+                value: /app/certs/AGServerCertSecEncKey.pem
+            volumes:
+            - name: config-volume
+              hostPath:
+                path: /usr/local/share/source/repos/safe_vnext/Src//Container/config
+            - name: log-volume
+              hostPath:
+                path: /usr/local/share/runlogs
+            - name: cert-volume
+              hostPath:
+                path: /usr/local/share/ncerts
+            - name: cert-key-volume
+              hostPath:
+                path: /usr/local/share/ncerts/certkey
+
+  - target:
+      kind: Service
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: hidsafekiosk
+        namespace: {{clientname}}-{{envname}}
+        labels:
+          namespace-name: '{{clientname}}-{{envname}}'
+          deployment-env: '{{envname}}'
+          deployment-instance: 'local'
+          enable-hidsafekiosk: "y"
+          enable-ext-ip-for-hidsafeweb: 'y'
+          use-pool: hidsafekiosk-ext-ip-pool-in-dev
+      spec:
+        sessionAffinityConfig:
+          clientIP:
+            timeoutSeconds: 60
+        selector:
+            namespace-name: '{{clientname}}-{{envname}}'
+            deployment-env: '{{envname}}'
+            deployment-instance: 'local'
+            enable-hidsafekiosk: "y"
+        loadBalancerIP: ''
+
+  - target:
+      kind: Job
+    patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: hidsafekiosk-presync-status
+        labels:
+          namespace-name: '{{clientname}}-{{envname}}'
+          deployment-env: '{{envname}}'
+          deployment-instance: 'local'
+      spec:
+        template:
+          spec:
+            containers:
+            - name: presync-status-container
+              env:
+              - name: CLIENT
+                value: "{{clientname}}"
+              - name: ENV
+                value: "{{envname}}"

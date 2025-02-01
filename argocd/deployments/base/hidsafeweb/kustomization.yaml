@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+    - deployment_safeweb.yaml
+
+transformers:
+  - |
+    apiVersion: builtin
+    kind: PrefixTransformer
+    metadata:
+      name: job-name-prefix-transformer
+    prefix: hidsafeweb-
+    fieldSpecs:
+      - kind: Job
+        path: metadata/name

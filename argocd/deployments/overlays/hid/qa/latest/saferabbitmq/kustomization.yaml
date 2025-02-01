@@ -1,0 +1,78 @@
+# Replace all the {{}} except {{TAG}} variable to customize the template
+# {{TAG}} will be replaced by the release scripts
+# Image name, Deployment Instance or host path may be reuqired to change for the cloud and on-prem based on the git hub structure
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+nameSuffix: -hid-qa
+resources:
+  - ../../../../../base/saferabbitmq
+
+images:
+    - name: rabbitmq-image
+      newName: rabbitmq
+      newTag: 3.13-management
+
+patches:
+  - target:
+      kind: Deployment
+    patch: |-
+      apiVersion: v1
+      kind: Deployment
+      metadata:
+        name: saferabbitmq
+        namespace: hid-qa
+        labels:
+          namespace-name: 'hid-qa'
+          deployment-env: 'qa'
+          deployment-instance: 'local'          
+      spec:
+        selector:
+          matchLabels:
+            namespace-name: 'hid-qa'
+            deployment-env: 'qa'
+            deployment-instance: 'local'
+        template:
+          metadata:
+            labels:
+              namespace-name: 'hid-qa'
+              deployment-env: 'qa'
+              deployment-instance: 'local'
+          spec:
+            hostname : saferabbitmq
+            containers:
+            - name: saferabbitmq
+              env:
+              - name: RABBITMQ_DEFAULT_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: safeapp-credentials-hid-qa
+                    key: username
+              - name: RABBITMQ_DEFAULT_PASS
+                valueFrom:
+                  secretKeyRef:
+                    name: safeapp-credentials-hid-qa
+                    key: password
+
+  - target:
+      kind: Service
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: saferabbitmq
+        namespace: hid-qa
+        labels:
+          namespace-name: 'hid-qa'
+          deployment-env: 'qa'
+          deployment-instance: 'local'
+          enable-ext-ip-for-saferabbitmq: 'y'
+      spec:
+        sessionAffinityConfig:
+          clientIP:
+            timeoutSeconds: 60
+        selector:
+          namespace-name: 'hid-qa'
+          deployment-env: 'qa'
+          deployment-instance: 'local'
+        loadBalancerIP:
+

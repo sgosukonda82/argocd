@@ -1,0 +1,20 @@
+# Replace all the {{}} variable to customize the template
+# Application source path may be reuqired to change for the cloud and on-prem based on the git hub structure
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namePrefix: hidsafescheduler-hid-{{envname}}-
+resources:
+  - ../../../../base
+patches:
+  - target:
+      kind: Application
+    patch: |-
+      apiVersion: apps/v1
+      kind: Application
+      spec:
+        source:
+          path: latest/hidsafescheduler
+      metadata:
+        name: app
+        annotations:
+          argocd.argoproj.io/sync-wave: "4"
